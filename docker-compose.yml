@@ -1,6 +1,6 @@
 services:
-  my-service-production:
-    container_name: my-service-production
+  mindstyle-production:
+    container_name: mindstyle-production
     build:
       target: production
       context: .
@@ -17,8 +17,8 @@ services:
           cpus: "0.25"
           memory: "256m"
 
-  my-service-dev:
-    container_name: my-service-dev
+  mindstyle-dev:
+    container_name: mindstyle-dev
     restart: unless-stopped
     env_file: .env
     build:

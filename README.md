@@ -72,7 +72,7 @@ npm install -g pnpm@9.14.2
 The project is fully dockerized 🐳, if we want to start the app in **development mode**, we just need to run:
 
 ```bash
-docker-compose up -d my-service-dev
+docker-compose up -d mindstyle
 ```
 
 This development mode will work with **hot-reload** and expose a **debug port**, port `9229`, so later we can connect to it from our editor.

@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model affiliate_partners {
+  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String                 @unique @db.VarChar(255)
+  website_url          String
+  logo                 String?
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  affiliate_promotions affiliate_promotions[]
+  brands               brands[]
+  categories           categories[]
+  products             products[]
+
+  @@index([name], map: "idx_affiliate_partners_name")
+}
+
+model affiliate_promotions {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  affiliate_partner_id    String?                   @db.Uuid
+  title                   String                    @db.VarChar(255)
+  description             String?
+  promotion_url           String
+  banner_image            String?
+  start_date              DateTime                  @db.Date
+  end_date                DateTime                  @db.Date
+  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  affiliate_partners      affiliate_partners?       @relation(fields: [affiliate_partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  promotion_products      promotion_products[]
+  user_claimed_promotions user_claimed_promotions[]
+
+  @@index([affiliate_partner_id], map: "idx_affiliate_promotions_affiliate_partner_id")
+  @@index([start_date, end_date], map: "idx_affiliate_promotions_start_end_date")
+}
+
+model brands {
+  id                   String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String              @unique @db.VarChar(255)
+  affiliate_partner_id String?             @db.Uuid
+  website_url          String?
+  logo                 String?
+  created_at           DateTime?           @default(now()) @db.Timestamp(6)
+  affiliate_partners   affiliate_partners? @relation(fields: [affiliate_partner_id], references: [id], onUpdate: NoAction)
+  products             products[]
+
+  @@index([affiliate_partner_id], map: "idx_brands_affiliate_partner_id")
+  @@index([name], map: "idx_brands_name")
+}
+
+model categories {
+  id                   String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String               @unique @db.VarChar(255)
+  affiliate_partner_id String?              @db.Uuid
+  image                String?
+  created_at           DateTime?            @default(now()) @db.Timestamp(6)
+  affiliate_partners   affiliate_partners?  @relation(fields: [affiliate_partner_id], references: [id], onUpdate: NoAction)
+  product_categories   product_categories[]
+  products             products[]
+
+  @@index([affiliate_partner_id], map: "idx_categories_affiliate_partner_id")
+  @@index([name], map: "idx_categories_name")
+}
+
+model fashion_trend_sources {
+  id             String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  source_type    String?          @db.VarChar(50)
+  source_url     String?
+  api_endpoint   String?
+  created_at     DateTime?        @default(now()) @db.Timestamp(6)
+  fashion_trends fashion_trends[]
+
+  @@index([source_type], map: "idx_fashion_trend_sources_source_type")
+}
+
+model fashion_trends {
+  id                    String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  source_id             String                @db.Uuid
+  title                 String                @db.VarChar(255)
+  description           String?
+  media_url             String?
+  post_url              String?
+  category              String?               @db.VarChar(100)
+  trending_date         DateTime?             @db.Date
+  created_at            DateTime?             @default(now()) @db.Timestamp(6)
+  fashion_trend_sources fashion_trend_sources @relation(fields: [source_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  trending_products     trending_products[]
+
+  @@index([source_id], map: "idx_fashion_trends_source_id")
+  @@index([trending_date], map: "idx_fashion_trends_trending_date")
+}
+
+model product_categories {
+  product_id  String     @db.Uuid
+  category_id String     @db.Uuid
+  categories  categories @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products    products   @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([product_id, category_id])
+  @@index([category_id], map: "idx_product_categories_category_id")
+  @@index([product_id], map: "idx_product_categories_product_id")
+}
+
+model product_images {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id String?   @db.Uuid
+  image_url  String
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_product_images_product_id")
+}
+
+model product_ratings {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  product_id String   @db.Uuid
+  rating     Decimal? @db.Decimal(3, 2)
+  review     String?
+  products   products @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_product_ratings_product_id")
+  @@index([user_id], map: "idx_product_ratings_user_id")
+}
+
+model product_variants {
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id     String?   @db.Uuid
+  size           String?   @db.VarChar(50)
+  color          String?   @db.VarChar(50)
+  color_hex      String?   @db.VarChar(7)
+  stock_quantity Int?      @default(0)
+  products       products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([color], map: "idx_product_variants_color")
+  @@index([product_id], map: "idx_product_variants_product_id")
+  @@index([size], map: "idx_product_variants_size")
+}
+
+model products {
+  id                   String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_code         String               @unique @db.VarChar(255)
+  name                 String               @db.VarChar(255)
+  description          String?
+  price                Decimal              @db.Decimal(10, 2)
+  brand_id             String?              @db.Uuid
+  category_id          String?              @db.Uuid
+  affiliate_partner_id String?              @db.Uuid
+  created_at           DateTime?            @default(now()) @db.Timestamp(6)
+  product_categories   product_categories[]
+  product_images       product_images[]
+  product_ratings      product_ratings[]
+  product_variants     product_variants[]
+  affiliate_partners   affiliate_partners?  @relation(fields: [affiliate_partner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  brands               brands?              @relation(fields: [brand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  categories           categories?          @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  promotion_products   promotion_products[]
+  recommendation       recommendation[]
+  trending_products    trending_products[]
+  user_behavior        user_behavior[]
+  user_carts           user_carts[]
+  user_ratings         user_ratings[]
+
+  @@index([brand_id], map: "idx_products_brand_id")
+  @@index([category_id], map: "idx_products_category_id")
+  @@index([price], map: "idx_products_price")
+  @@index([product_code], map: "idx_products_product_code")
+}
+
+model promotion_products {
+  id                   String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  promotion_id         String?               @db.Uuid
+  product_id           String?               @db.Uuid
+  products             products?             @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  affiliate_promotions affiliate_promotions? @relation(fields: [promotion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_promotion_products_product_id")
+  @@index([promotion_id], map: "idx_promotion_products_promotion_id")
+}
+
+model recommendation {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String    @db.Uuid
+  product_id String    @db.Uuid
+  reason     String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_recommendation_product_id")
+  @@index([user_id], map: "idx_recommendation_user_id")
+}
+
+model trending_products {
+  id              String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  trend_id        String         @db.Uuid
+  product_id      String         @db.Uuid
+  relevance_score Decimal?       @db.Decimal(3, 2)
+  products        products       @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fashion_trends  fashion_trends @relation(fields: [trend_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_trending_products_product_id")
+  @@index([trend_id], map: "idx_trending_products_trend_id")
+}
+
+model user_behavior {
+  id                    String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id               String?   @db.Uuid
+  product_id            String?   @db.Uuid
+  interaction_type      String?   @db.VarChar(50)
+  interaction_timestamp DateTime? @default(now()) @db.Timestamp(6)
+  products              products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                 users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_user_behavior_product_id")
+  @@index([user_id], map: "idx_user_behavior_user_id")
+}
+
+model user_carts {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String?   @db.Uuid
+  product_id String?   @db.Uuid
+  quantity   Int?      @default(1)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_user_carts_product_id")
+  @@index([user_id], map: "idx_user_carts_user_id")
+}
+
+model user_claimed_promotions {
+  claim_id             String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id              String               @db.Uuid
+  promotion_id         String               @db.Uuid
+  claimed_at           DateTime?            @default(now()) @db.Timestamp(6)
+  affiliate_promotions affiliate_promotions @relation(fields: [promotion_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                users                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([promotion_id], map: "idx_user_claimed_promotions_promotion_id")
+  @@index([user_id], map: "idx_user_claimed_promotions_user_id")
+}
+
+model user_preferences {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id             String?   @db.Uuid
+  favorite_brands     String[]
+  favorite_categories String[]
+  favorite_colors     String[]
+  created_at          DateTime? @default(now()) @db.Timestamp(6)
+  users               users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_user_preferences_user_id")
+}
+
+model user_ratings {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String?   @db.Uuid
+  product_id String?   @db.Uuid
+  rating     Int?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_user_ratings_product_id")
+  @@index([user_id], map: "idx_user_ratings_user_id")
+}
+
+model users {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  firebase_uid            String                    @unique @db.VarChar(255)
+  email                   String                    @unique @db.VarChar(255)
+  first_name              String?                   @db.VarChar(255)
+  last_name               String?                   @db.VarChar(255)
+  gender                  String?                   @db.VarChar(50)
+  date_of_birth           DateTime?                 @db.Date
+  profile_picture         String?
+  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  product_ratings         product_ratings[]
+  recommendation          recommendation[]
+  user_behavior           user_behavior[]
+  user_carts              user_carts[]
+  user_claimed_promotions user_claimed_promotions[]
+  user_preferences        user_preferences[]
+  user_ratings            user_ratings[]
+
+  @@index([email], map: "idx_users_email")
+  @@index([firebase_uid], map: "idx_users_firebase_uid")
+}

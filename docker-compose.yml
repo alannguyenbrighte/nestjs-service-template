@@ -30,7 +30,9 @@ services:
       - "${PORT:-3000}:${PORT:-3000}"
       - "9229:9229"
     volumes:
-      - ./src:/app/src
+      - /c/Users/AlanNguyen/development/nestjs-template/src:/app/src
+      - /c/Users/AlanNguyen/development/nestjs-template/.env:/app/.env
+    command: npm run start:dev
     deploy:
       resources:
         limits:
@@ -44,8 +46,8 @@ services:
     image: ghcr.io/grafana/xk6-dashboard:0.7.2
     container_name: k6
     volumes:
-      - ./tests/performance:/tests/performance
-      - ./k6-results:/home/k6
+      - /c/Users/AlanNguyen/development/nestjs-template/tests/performance:/tests/performance
+      - /c/Users/AlanNguyen/development/nestjs-template/k6-results:/home/k6
     ports:
       - "5665:5665"
     environment:

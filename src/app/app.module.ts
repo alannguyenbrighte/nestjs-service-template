@@ -7,6 +7,8 @@ import { LoggerModule } from "@/shared/logger/logger.module";
 
 import { UserModule } from "@/contexts/users/user.module";
 
+import { PrismaService } from "../prisma/prisma.service";
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
@@ -14,5 +16,7 @@ import { UserModule } from "@/contexts/users/user.module";
     HealthModule,
     UserModule,
   ],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
 export class AppModule {}

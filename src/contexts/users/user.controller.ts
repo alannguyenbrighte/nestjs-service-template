@@ -13,7 +13,7 @@ import {
 } from "@nestjs/common";
 
 // import { FirebaseAuthGuard } from "../../../auth/firebase-auth.guard";
-import { UserService } from "../user.service";
+import { UserService } from "./user.service";
 
 @Controller("users")
 export class UserController {

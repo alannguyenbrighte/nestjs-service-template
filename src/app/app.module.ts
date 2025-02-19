@@ -6,6 +6,7 @@ import { HealthModule } from "@/app/health/health.module";
 import { LoggerModule } from "@/shared/logger/logger.module";
 
 import { BrandModule } from "@/contexts/brand/brand.module"; // Import BrandModule
+import { CategoryModule } from "@/contexts/category/category.module"; // Import CategoryModule
 import { UserModule } from "@/contexts/users/user.module";
 
 import { PrismaService } from "../prisma/prisma.service";
@@ -17,6 +18,7 @@ import { PrismaService } from "../prisma/prisma.service";
     HealthModule,
     UserModule,
     BrandModule, // Add BrandModule to imports
+    CategoryModule, // Add CategoryModule to imports
   ],
   providers: [PrismaService],
   exports: [PrismaService],

@@ -13,7 +13,10 @@ export class BrandService {
       return await this.prisma.brands.findMany();
     } catch (error: unknown) {
       if (error instanceof Error) {
-        this.logger.error(`Failed to get brands: ${error.message}`, error.stack);
+        this.logger.error(
+          `Failed to get brands: ${error.message}`,
+          error.stack,
+        );
         throw new TypeError(`Failed to get brands: ${error.message}`);
       }
       this.logger.error("Failed to get brands", String(error));
